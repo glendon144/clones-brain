@@ -28,8 +28,8 @@ The default database path is `data/clones-brain.db`.
 
 ```bash
 cd /home/gross/open-brain/clones-brain
-python3 -m venv .venv
-source .venv/bin/activate
+python3 -m venv /home/gross/.venvs/clones-brain
+source /home/gross/.venvs/clones-brain/bin/activate
 pip install -r requirements.txt
 scripts/init-db.sh
 ```
@@ -125,6 +125,19 @@ The migration code is defensive because deployed OpenBrain instances may expose 
 3. Direct REST-style paths like `/list_recent`, `/export_bundle`, `/search_thoughts`, and `/recover_context`
 
 Raw responses are written to `exports/openbrain-migration-raw-YYYYMMDD-HHMMSS.json`. The importer normalizes records and skips duplicates by `external_id` or by title/body/timestamp fingerprints.
+
+### Rehearsal notes
+
+Two rehearsal imports have already been exercised locally:
+
+- A 10-record hosted OpenBrain import rehearsal saved to `exports/openbrain-rehearsal-raw-20260520-143954.json`
+- A Dream Server selective rehearsal that saved per-query raw exports under `exports/openbrain-selective-*-20260520-145106.json`
+
+The current hosted OpenBrain APIs still return human-formatted SSE text blocks for some read paths. `clones-brain` therefore preserves hosted provenance in local `metadata` and skips duplicates using the local content-and-timestamp guard when stable hosted IDs are unavailable.
+
+### recover_context normalization
+
+`recover_context` now normalizes natural-language questions into durable search terms before falling back. For example, `What is the Dream Server and how does recover_context work?` is reduced to a keyword query that can still hit FTS5-backed local records.
 
 ### Expected response shapes
 
