@@ -30,6 +30,12 @@ done
 curl -sS "http://127.0.0.1:$PORT/capture_thought" \
   -H 'Content-Type: application/json' \
   -d '{"title":"Smoke","body":"Smoke test thought for clones-brain search","tags":["smoke"]}' >/dev/null
+curl -sS "http://127.0.0.1:$PORT/capture_thought" \
+  -H 'Content-Type: application/json' \
+  -d '{"title":"Quoted Smoke","body":"alpha \"quoted\" phrase for wrapper search","tags":["smoke","quoted"]}' >/dev/null
+curl -sS "http://127.0.0.1:$PORT/capture_thought" \
+  -H 'Content-Type: application/json' \
+  -d '{"title":"Apostrophe Smoke","body":"alpha apostrophe can'\''t regress wrapper search","tags":["smoke","apostrophe"]}' >/dev/null
 
 SEARCH_OUTPUT="$(curl -sS "http://127.0.0.1:$PORT/search_thoughts" -H 'Content-Type: application/json' -d '{"query":"Smoke test thought","limit":5}')"
 SEARCH_OUTPUT="$SEARCH_OUTPUT" "$PYTHON_BIN" - <<'PY'
@@ -41,5 +47,30 @@ if not thoughts:
     raise SystemExit("search returned no thoughts")
 if "Smoke test thought" not in thoughts[0].get("body", ""):
     raise SystemExit("expected captured thought missing from search")
-print("smoke test passed")
 PY
+
+QUOTED_OUTPUT="$(CLONES_BRAIN_BASE_URL="http://127.0.0.1:$PORT" "$ROOT_DIR/scripts/search-thoughts.sh" 'alpha "quoted"' 5)"
+SEARCH_OUTPUT="$QUOTED_OUTPUT" "$PYTHON_BIN" - <<'PY'
+import json
+import os
+payload = json.loads(os.environ["SEARCH_OUTPUT"])
+thoughts = payload.get("thoughts") or []
+if not thoughts:
+    raise SystemExit("quoted-string wrapper search returned no thoughts")
+if not any('alpha "quoted" phrase' in thought.get("body", "") for thought in thoughts):
+    raise SystemExit("quoted-string wrapper search missed expected thought")
+PY
+
+APOSTROPHE_OUTPUT="$(CLONES_BRAIN_BASE_URL="http://127.0.0.1:$PORT" "$ROOT_DIR/scripts/search-thoughts.sh" "apostrophe can't regress" 5)"
+SEARCH_OUTPUT="$APOSTROPHE_OUTPUT" "$PYTHON_BIN" - <<'PY'
+import json
+import os
+payload = json.loads(os.environ["SEARCH_OUTPUT"])
+thoughts = payload.get("thoughts") or []
+if not thoughts:
+    raise SystemExit("apostrophe wrapper search returned no thoughts")
+if not any("apostrophe can't regress" in thought.get("body", "") for thought in thoughts):
+    raise SystemExit("apostrophe wrapper search missed expected thought")
+PY
+
+echo "smoke test passed"
