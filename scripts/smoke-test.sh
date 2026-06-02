@@ -5,7 +5,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TMP_DIR="$(mktemp -d)"
 DB_PATH="$TMP_DIR/smoke.db"
 LOG_PATH="$TMP_DIR/server.log"
-PORT="18765"
+PORT="8765"
 PYTHON_BIN="${CLONES_BRAIN_PYTHON:-/home/gross/.venvs/clones-brain/bin/python}"
 if [[ ! -x "$PYTHON_BIN" ]]; then
   PYTHON_BIN="${PYTHON:-python3}"

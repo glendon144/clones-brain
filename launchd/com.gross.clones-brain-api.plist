@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.gross.clones-brain-api</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/gross/src/clones-brain/scripts/run-api-server.sh</string>
+  </array>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>CLONES_BRAIN_PYTHON</key>
+    <string>/Users/gross/.venvs/clones-brain/bin/python</string>
+    <key>CLONES_BRAIN_DB</key>
+    <string>/Users/gross/src/clones-brain/data/clones-brain.db</string>
+    <key>CLONES_BRAIN_HOST</key>
+    <string>127.0.0.1</string>
+    <key>CLONES_BRAIN_PORT</key>
+    <string>8765</string>
+  </dict>
+
+  <key>KeepAlive</key>
+  <true/>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/gross/src/clones-brain</string>
+
+  <key>StandardOutPath</key>
+  <string>/Users/gross/src/clones-brain/logs/clones-brain-api.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>/Users/gross/src/clones-brain/logs/clones-brain-api.err.log</string>
+</dict>
+</plist>

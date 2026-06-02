@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.gross.clones-brain-mcp-proxy</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/gross/src/clones-brain/scripts/run-mcp-proxy.sh</string>
+  </array>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>CLONES_BRAIN_URL</key>
+    <string>http://127.0.0.1:8765</string>
+    <key>CLONES_BRAIN_PROXY_HOST</key>
+    <string>127.0.0.1</string>
+    <key>CLONES_BRAIN_PROXY_PORT</key>
+    <string>3001</string>
+  </dict>
+
+  <key>KeepAlive</key>
+  <true/>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/gross/src/clones-brain</string>
+
+  <key>StandardOutPath</key>
+  <string>/Users/gross/src/clones-brain/logs/clones-brain-mcp-proxy.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>/Users/gross/src/clones-brain/logs/clones-brain-mcp-proxy.err.log</string>
+</dict>
+</plist>
