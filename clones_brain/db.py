@@ -21,12 +21,44 @@ def ensure_parent(path: Path) -> None:
 
 
 def connect_db(db_path: Path | None = None) -> sqlite3.Connection:
+    """
+    Open a connection to the SQLite database configured for clones‑brain.
+
+    This helper ensures the parent directory exists, enables foreign key support,
+    sets a write timeout to prevent immediate ``database is locked`` errors under
+    concurrent writes, and switches SQLite into Write‑Ahead Logging (WAL) mode
+    with normal synchronous settings. WAL allows readers to continue operating
+    while a single writer appends to the log, greatly reducing contention for
+    workloads that perform both reads and writes.
+
+    Parameters
+    ----------
+    db_path : Path | None
+        Optional override for the database file path. If not provided the
+        configured ``Settings.db_path`` is used.
+
+    Returns
+    -------
+    sqlite3.Connection
+        A configured SQLite connection ready for use.
+    """
     settings = load_settings()
     path = Path(db_path or settings.db_path)
     ensure_parent(path)
-    conn = sqlite3.connect(path)
+    # Set a generous timeout to wait for write locks rather than failing
+    conn = sqlite3.connect(path, timeout=10.0)
     conn.row_factory = sqlite3.Row
+    # Always enforce foreign key constraints
     conn.execute("pragma foreign_keys = on")
+    # Enable write‑ahead logging and adjust synchronous mode. WAL allows
+    # concurrent readers while a writer is active, and NORMAL synchronous
+    # provides a good balance between durability and throughput.
+    try:
+        conn.execute("pragma journal_mode = WAL")
+        conn.execute("pragma synchronous = NORMAL")
+    except sqlite3.Error:
+        # Ignore pragma errors on older SQLite versions
+        pass
     return conn
 
 

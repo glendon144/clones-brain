@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
 
 
@@ -35,7 +36,18 @@ def _env_bool(name: str, default: bool = False) -> bool:
     return value.strip().lower() in {"1", "true", "yes", "on"}
 
 
+@lru_cache
 def load_settings() -> Settings:
+    """
+    Load and cache the application settings.
+
+    Reading environment variables and default paths from disk can be relatively
+    expensive if done on every request. Decorating this function with
+    ``@lru_cache`` ensures that the ``Settings`` object is created once and
+    reused for all subsequent calls. FastAPI will call this function through
+    dependencies, and the cached result improves performance while still
+    allowing overrides during testing.
+    """
     db_path = Path(os.getenv("CLONES_BRAIN_DB", DEFAULT_DB_PATH)).expanduser()
     export_dir = Path(os.getenv("CLONES_BRAIN_EXPORT_DIR", DEFAULT_EXPORT_DIR)).expanduser()
     log_dir = Path(os.getenv("CLONES_BRAIN_LOG_DIR", DEFAULT_LOG_DIR)).expanduser()

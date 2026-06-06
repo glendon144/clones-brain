@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from contextlib import closing
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+import sqlite3
 
 from .config import load_settings
 from .db import connect_db, count_thoughts, export_bundle, import_bundle, init_db, insert_thought, list_recent, search_thoughts, utc_now_iso
@@ -36,8 +37,15 @@ def health() -> dict[str, object]:
 def capture_thought(request: CaptureThoughtRequest) -> dict[str, object]:
     settings = load_settings()
     with closing(connect_db(settings.db_path)) as conn:
-        thought_id = insert_thought(conn, request)
-        conn.commit()
+        try:
+            thought_id = insert_thought(conn, request)
+            conn.commit()
+        except sqlite3.IntegrityError as exc:
+            # Likely duplicate external_id or other constraint violation
+            raise HTTPException(status_code=400, detail=f"Invalid thought data: {exc}") from exc
+        except Exception as exc:
+            # Catch all unexpected errors and return 500
+            raise HTTPException(status_code=500, detail="Failed to capture thought") from exc
     return {"ok": True, "id": thought_id, "status": "captured"}
 
 
@@ -85,6 +93,10 @@ def get_export_bundle() -> dict[str, object]:
 def post_import_bundle(request: ImportBundleRequest) -> dict[str, object]:
     settings = load_settings()
     with closing(connect_db(settings.db_path)) as conn:
-        result = import_bundle(conn, request.thoughts)
-        conn.commit()
+        try:
+            result = import_bundle(conn, request.thoughts)
+            conn.commit()
+        except Exception as exc:
+            # Propagate any error as a 500 response
+            raise HTTPException(status_code=500, detail="Failed to import bundle") from exc
     return result
