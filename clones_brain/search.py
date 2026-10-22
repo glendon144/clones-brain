@@ -65,6 +65,19 @@ def _build_fts_candidates(query: str) -> list[str]:
     return candidates
 
 
+def _build_fts_relaxed(query: str) -> str | None:
+    """OR together the distinct content terms so a record matching most of them still hits.
+
+    Plain space-separated FTS5 terms are an implicit AND (every term must appear in one
+    record), which is why long natural-language questions returned nothing. bm25 ranking
+    keeps records that match more terms ahead of those matching one.
+    """
+    terms = normalize_query_text(query).split()
+    if len(terms) < 2:
+        return None
+    return " OR ".join(f'"{t}"' for t in terms)
+
+
 def _build_like_candidates(query: str) -> list[str]:
     candidates: list[str] = []
     raw = query.strip()
@@ -102,6 +115,14 @@ def search_thought_rows(conn: sqlite3.Connection, query: str, limit: int) -> tup
                     return rows, mode
             except sqlite3.Error:
                 continue
+        relaxed = _build_fts_relaxed(query)
+        if relaxed:
+            try:
+                rows = conn.execute(sql, (relaxed, limit)).fetchall()
+                if rows:
+                    return rows, "fts5-relaxed"
+            except sqlite3.Error:
+                pass
 
     sql = """
     select *,
